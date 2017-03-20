@@ -1,0 +1,30 @@
+# -*- coding: utf-8 -*-
+
+import redis
+import settings
+from scrapy.utils.job import job_dir
+from scrapy.dupefilter import BaseDupeFilter
+#from scrapy.exceptions import IgnoreRequest
+
+
+class RedisFilter(BaseDupeFilter):
+
+   def __init__(self,path=None):
+
+     self.Redis = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT,db=settings.REDIS_DB)
+     self.redis_key = settings.REDIS_KEY
+     #self.file = None
+     #self.fingerprints = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT,db=settings.REDIS_DB)
+   
+   @classmethod
+   def from_settings(cls, settings):
+      return cls(job_dir(settings))
+
+   
+   def request_seen(self,request):
+
+      fp = request.url
+      #if self.fingerprints.sismember(settings.REDIS_KEY,fp):
+      if self.Redis.sismember(self.redis_key,fp):
+         return True
+         #raise IgnoreRequest('Skipped (request already seen)')
